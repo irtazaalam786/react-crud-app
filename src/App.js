@@ -27,7 +27,7 @@ function App() {
         <Col md={12}>
           <Routes>
             <Route path="/product/create" element={<CreateProduct />} />
-            <Route path="/product/edit/:id" element={<EditProduct />} />
+            <Route path="/product/edit/:id" element={<CreateProduct />} />
             <Route exact path='/' element={<ProductList />} />
           </Routes>
         </Col>

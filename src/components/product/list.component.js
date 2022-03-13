@@ -3,14 +3,18 @@ import { Link } from 'react-router-dom';
 import Button from 'react-bootstrap/Button'
 import axios from 'axios';
 import Swal from 'sweetalert2'
+import { useLocation } from 'react-router-dom'
 
-export default function List() {
+export default function List(props) {
+
+    const {state} = useLocation();
 
     const [products, setProducts] = useState([])
 
     useEffect(()=>{
-        fetchProducts() 
-    })
+        fetchProducts()
+        console.log(state); 
+    },[])
 
     const fetchProducts = async () => {
         await axios.get(`http://localhost:8000/api/products`).then(({data})=>{

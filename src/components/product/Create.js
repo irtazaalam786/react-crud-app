@@ -3,45 +3,37 @@ import Form from 'react-bootstrap/Form'
 import Button from 'react-bootstrap/Button'
 import axios from 'axios'
 import Swal from 'sweetalert2';
-import Row from 'react-bootstrap/Row';
-import Col from 'react-bootstrap/Col';
 import { useNavigate,useParams } from 'react-router-dom'
-import Textfield from "./text.component";
-import Descriptionfield from "./description.component";
-import Imagefield from "./image.component";
+import Textfield from "../fields/Textfield";
+import Descriptionfield from "../fields/DescriptionField";
+import Imagefield from "../fields/ImageField";
+import Checkfield from "../fields/CheckField";
+import Radiofield from "../fields/RadioField";
 
-export default function CreateProduct() {
+export default function Create() {
+
+  //Used to make navigate between Components
   const navigate = useNavigate();
 
   const [validationError,setValidationError] = useState({})
   const [data, setData] = useState({});
-
+  
+  //Used to get the param sent from link in routes Component
   const { id } = useParams()
-
-  let checkboxes = ["irtiza", "murtaza"];
 
   const onInputChange = async e =>{
     const {name, value} = e.target;
-      console.log('name',name);
       data[name] = value;
       setData({...data})
-      console.log(data);
   }
 
   useEffect(()=>{
-    fetchProduct()
+    fetchItem()
   },[])
 
-  useEffect(()=>{
-    if(data.designation){
-      console.log(data.designation);
-      console.log(data.designation.includes('irtiza'));
-    }
-  },[data])
-
-  const fetchProduct = async () => {
+  const fetchItem = async () => {
     if(id){
-      await axios.get(`http://localhost:8000/api/products/${id}`).then(({data})=>{
+      await axios.get(`products/${id}`).then(({data})=>{
         setData(data.product);
       }).catch(({response:{data}})=>{
         Swal.fire({
@@ -58,21 +50,27 @@ export default function CreateProduct() {
     fontSize: '10px'
   };
 
-  const createProduct = async (e) => {
+  const create = async (e) => {
     e.preventDefault();
+
+    //Serializing all values
     const formData = new FormData(e.target)
+
     if(id){
       formData.append('_method', 'PATCH');
-      var url = `http://localhost:8000/api/products/${id}`;
+      var url = `products/${id}`;
     }else{
-      var url = `http://localhost:8000/api/products`;
+      var url = `products`;
     }
+
     await axios.post(url, formData).then(({data})=>{
       Swal.fire({
         icon:"success",
         text:data.message
       })
-      navigate("/",{state:'Data has been Added ddd'})
+
+      navigate("/product",{state:'Data has been Added'})
+
     }).catch(({response})=>{
       if(response.status===422){
         setValidationError(response.data.errors)
@@ -94,22 +92,14 @@ export default function CreateProduct() {
               <h4 className="card-title"> { id ? 'Update' : 'Create' } Product</h4>
               <hr />
               <div className="form-wrapper">
-                <Form id="frm_submit" onSubmit={createProduct}>
+                <Form id="frm_submit" onSubmit={create}>
                   <Textfield name="title" data={data} style={mystyle} validation={validationError} onInputChange={onInputChange}/>
                   <Descriptionfield name="description" data={data} style={mystyle} validation={validationError} onInputChange={onInputChange}/>
-                  <Imagefield name="image" data={data} style={mystyle} validation={validationError} onInputChange={onInputChange}/>
-                  <Row> 
-                      <Col>
-                          <Form.Group controlId="Name" style={{display:"flex"}}>
-                              {/* <Form.Check name="values[]"  type='checkbox'id='checkbox' value='irtiza' label='checbox' defaultChecked={checkboxes.includes('irtiza')}/>
-                              <Form.Check name="values[]"  type='checkbox'id='checkbox' value='murtaza' label='checbox' defaultChecked={checkboxes.includes('murtaza')}/> */}
-                              { checkboxes.map((row)=>( 
-                                  <Form.Check name="designation[]"  type='checkbox'id='checkbox' value={row} label={data.designation} defaultChecked={data.designation} />
-                              ))}
-                          </Form.Group>
-                      </Col>  
-                      <span style={mystyle}>{ validationError['designation'] }</span>
-                  </Row>
+                  <Form.Label>Designation</Form.Label>
+                  <Checkfield name="designation" multi_name="designation[]" values={[{key:"1",value:'employee'},{key:"2",value:'owner'}]} data={data} style={mystyle} validation={validationError} onInputChange={onInputChange}/>
+                  <Form.Label>Gender</Form.Label>
+                  <Radiofield name="gender" values={[{key:"male",value:'Male'},{key:"female",value:'Female'}]} data={data} style={mystyle} validation={validationError} onInputChange={onInputChange}/>
+                  <Imagefield name="image" data={data} style={mystyle} validation={validationError}/>
                   <Button variant="primary" className="mt-2" size="lg" block="block" type="submit">
                     Save
                   </Button>

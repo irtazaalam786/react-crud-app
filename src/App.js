@@ -1,38 +1,35 @@
 import * as React from "react";
-import Navbar from "react-bootstrap/Navbar";
-import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 import "bootstrap/dist/css/bootstrap.css";
-//import "./App.css";
-
-import { BrowserRouter as Router , Routes, Route, Link } from "react-router-dom";
-
-import EditProduct from "./components/product/edit.component";
-import ProductList from "./components/product/list.component";
-import CreateProduct from "./components/product/create.component";
+import axios from 'axios'
+import { BrowserRouter as Router} from "react-router-dom";
+import RoutesInfo from "./components/routes/routes";
+import Navigation from "./components/navbar/Navigation";
+import { BASE_URL,API_BASE_URL } from "./config";
 
 function App() {
-  return (<Router>
-    <Navbar bg="primary">
-      <Container>
-        <Link to={"/"} className="navbar-brand text-white">
-          TechvBlogs
-        </Link>
-      </Container>
-    </Navbar>
 
-    <Container className="mt-5">
-      <Row>
-        <Col md={12}>
-          <Routes>
-            <Route path="/product/create" element={<CreateProduct />} />
-            <Route path="/product/edit/:id" element={<CreateProduct />} />
-            <Route exact path='/' element={<ProductList />} />
-          </Routes>
-        </Col>
-      </Row>
-    </Container>
+  axios.defaults.baseURL = API_BASE_URL;
+
+  axios.interceptors.request.use((request) => {
+    
+    //Send Bearer Token in Request. Inceptor act as a gateway or middleware.
+    if(localStorage.getItem('token')){
+      request.headers.common.Authorization = `Bearer ${localStorage.getItem('token')}`;
+    }      
+    return request;
+  });
+
+  //Inceptor act as a gateway or middleware.
+  axios.interceptors.response.use((response) => {
+    console.log('response received');
+    return response;
+  });
+
+  return (<Router>
+    
+    <Navigation/>
+    <RoutesInfo/>
+    
   </Router>);
 }
 

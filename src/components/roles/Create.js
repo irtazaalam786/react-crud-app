@@ -15,8 +15,7 @@ export default function Create() {
 
   const [validationError,setValidationError] = useState({})
   const [data, setData] = useState({});
-  const [dataPermission, setDataPermission] = useState({});
-  const [permissions, setPermission] = useState({});
+  const [permissions, setPermission] = useState([]);
   const [loading,setLoading] = useState(false);
   const [btn_loading,setBtnLoading] = useState(true);
   
@@ -29,28 +28,53 @@ export default function Create() {
       setData({...data})
   }
 
-  const onCheckChange = async e =>{
+  useEffect(()=>{
+    fetchItem();
+  },[permissions,data])
+
+  const onCheckChange = (e) =>{
     const {name, checked} = e.target;
-    permissions.map((row,key)=>{
-        row['checked']=checked;
+    let temp_permissions = permissions.map((row)=>{
+        return {
+          ...row,
+          checked:checked
+        };
     })
-    setDataPermission(permissions);
+    console.log('permissions in functions',temp_permissions);
+    setPermission(temp_permissions);
   }
 
   const onViewChange = async e=>{
     const {checked} = e.target;
-    let item_view = 'view'+e.target.value.replace("update","").replace("edit","").replace("delete","")
-    permissions.map((row,key)=>{
-        if(item_view == row.value)
-          row['checked']=checked;
+    if(!e.target.value.includes('view')){
+      var item_view = 'view'+e.target.value.replace("update","").replace("edit","").replace("delete","")
+    }else{
+      var item_view = e.target.value;
+    }
+    
+    console.log('item_view',item_view)
+    let temp_permissions = permissions.map((row)=>{
+        if(item_view == row.value){
+          return {
+             ...row,checked:checked
+          }
+        }else if(e.target.value == row.value){
+          return {
+            ...row,checked:checked
+          }
+        }else{
+          return row;
+        }
     })
-    console.log(permissions);
-    setDataPermission(permissions);
+
+    setPermission(temp_permissions);
   }
 
   useEffect(()=>{
-    fetchItem()
     fetchPermission();
+    console.clear();
+    console.log('here',permissions)
+    
   },[])
 
   const fetchPermission = async()=>{
@@ -64,14 +88,30 @@ export default function Create() {
   const fetchItem = async () => {
     if(id){
       await axios.get(`roles/${id}`).then(({data})=>{
-        setData(data.role);
-        setDataPermission(data);
-      }).catch(({response:{data}})=>{
-        Swal.fire({
-          text:data.message,
-          icon:"error"
+
+        let temp_permissions = permissions.map((row)=>{
+           if(data.permissions.includes(row.value)){
+               return {
+                 ...row,checked:true
+               };
+           }else{
+              return {
+                ...row,checked:false
+              };
+           }
         })
+
+        console.log('temp_permissions',temp_permissions)
+
+        setPermission(temp_permissions);
       })
+      
+      // .catch(({response:{data}})=>{
+      //   Swal.fire({
+      //     text:data.message,
+      //     icon:"error"
+      //   })
+      // })
     }
   }
 
@@ -132,7 +172,7 @@ export default function Create() {
                 <Form id="frm_submit" onSubmit={create}>
                   <Textfield name="name" data={data} style={mystyle} validation={validationError} onInputChange={onInputChange}/>
                   <Form.Check type='checkbox' label='Check All' onChange={onCheckChange} />
-                  <Checkfield name="permissions" multi_name="permissions[]" values={permissions} data={dataPermission} style={mystyle} validation={validationError} onInputChange={onViewChange}/>
+                  <Checkfield name="permissions" multi_name="permissions[]" values={permissions} style={mystyle} validation={validationError} onInputChange={onViewChange}/>
                   <Button variant="primary" className="mt-2" size="lg" block="block" type="submit" style={{visibility: btn_loading ? 'visible' : 'hidden' }}>
                     Save
                   </Button>
